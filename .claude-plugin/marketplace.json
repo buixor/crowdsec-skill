@@ -1,0 +1,34 @@
+{
+  "name": "buixor",
+  "owner": {
+    "name": "buixor",
+    "url": "https://github.com/buixor"
+  },
+  "plugins": [
+    {
+      "name": "crowdsec",
+      "source": "./",
+      "description": "Operational skill for installing, configuring, operating, and debugging CrowdSec (cscli, LAPI/CAPI, hub, bouncers, WAF/AppSec) across bare-metal, Docker, and Kubernetes.",
+      "version": "0.1.0",
+      "author": {
+        "name": "buixor",
+        "url": "https://github.com/buixor"
+      },
+      "homepage": "https://github.com/buixor/crowdsec-skill",
+      "repository": "https://github.com/buixor/crowdsec-skill",
+      "license": "MIT",
+      "keywords": [
+        "crowdsec",
+        "security",
+        "waf",
+        "appsec",
+        "ids",
+        "ips",
+        "bouncer",
+        "fail2ban",
+        "devops",
+        "sre"
+      ]
+    }
+  ]
+}
