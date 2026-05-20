@@ -3,7 +3,8 @@
 Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/installation/kubernetes> · chart values <https://github.com/crowdsecurity/helm-charts/tree/main/charts/crowdsec>
 
 Operational layer over the canonical chart docs. Verified against the
-`crowdsec/crowdsec` Helm chart **0.24.0 (app v1.7.8)** on a kind cluster.
+`crowdsec/crowdsec` Helm chart **0.24.0 (app v1.7.8)** on a kind cluster and on
+**k3s v1.35.4** (single-node, Ubuntu).
 
 ## Architecture (what the chart deploys)
 
@@ -25,7 +26,7 @@ kubectl create namespace crowdsec
 helm install crowdsec crowdsec/crowdsec -n crowdsec -f values.yaml
 ```
 
-Minimal `values.yaml` that actually works on kind/k3d (verified shape):
+Minimal `values.yaml` that actually works (verified on kind **and** k3s):
 
 ```yaml
 container_runtime: containerd          # SEE GOTCHA 1 — chart default is "docker"
@@ -38,16 +39,23 @@ lapi:
 agent:
   acquisition:
     - namespace: kube-system
-      podName: kube-apiserver-*
+      podName: kube-apiserver-*        # SEE GOTCHA 7 — no such pod on k3s/k0s
       program: kube-apiserver
 appsec:
   enabled: true
+  env:                                 # SEE GOTCHA 8 — REQUIRED, else the appsec pod crashloops
+    - name: COLLECTIONS
+      value: "crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
   acquisitions:
     - source: appsec
       listen_addr: "0.0.0.0:7422"
       path: /
       appsec_config: crowdsecurity/appsec-default
+      labels:                          # SEE GOTCHA 8 — REQUIRED, else "missing labels" fatal
+        type: appsec
 ```
+
+> The two `appsec` additions above (`env: COLLECTIONS` and `labels:`) are **not optional** — `appsec.enabled: true` without them produces a CrashLoopBackOff, not a working WAF. See gotcha 8.
 
 ## The gotchas that actually bite
 
@@ -104,6 +112,21 @@ fills up and the apiserver wedges with `net/http: TLS handshake timeout`
 mid-rollout — not an obvious CrowdSec error. Check `docker exec <node> df -h /`
 and budget several GB free.
 
+### 7. k3s/k0s have no `kube-apiserver` pod; kubeconfig is root-only
+
+Verified on **k3s v1.35.4**:
+- k3s runs the control plane (apiserver, scheduler, controller) **embedded in the single `k3s` process** — there is **no `kube-apiserver-*` pod** in `kube-system`. The example acquisition above matches zero pods on k3s. Point `agent.acquisition` at a pod that actually exists (e.g. the ingress controller, or `svclb-traefik-*` on default k3s) with the matching `program`/parser.
+- The kubeconfig at `/etc/rancher/k3s/k3s.yaml` is **mode 0600 root-only**. `helm`/`kubectl` as a normal user can't read it, and `sudo helm` fails with `repo … not found` (Helm repos are per-user, root has none). Fix: `mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown $(id -u):$(id -g) ~/.kube/config`, then run helm as your user.
+- **Positive surprise vs gotcha 3:** k3s ships a `local-path` **default StorageClass**, so the LAPI PVCs (`crowdsec-db-pvc` 1Gi, `crowdsec-config-pvc` 100Mi) bind out of the box — you can keep `persistentVolume` *enabled* (prod-like) on k3s with no extra setup.
+
+### 8. `appsec.enabled: true` alone crashloops — needs collections AND labels (verified)
+
+Two independent fatals, both hit in sequence if you copy a bare appsec block:
+- `acquis.yaml: missing labels` → the `appsec.acquisitions` entry **must** carry `labels: { type: appsec }`, exactly like the bare-metal `acquis.d/appsec.yaml`.
+- `no appsec-config found for crowdsecurity/appsec-default` → the AppSec pod ships **no hub rules**; you must install the collections into it via **`appsec.env`** with a `COLLECTIONS` variable (space-separated), e.g. `crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules`. (`appsec.configs`/`appsec.rules` are for *inline custom* content, not hub installs.)
+
+Symptom is the `crowdsec-appsec` pod in `CrashLoopBackOff` with the startup probe failing on `:6060/metrics` (the process exits before serving). Read the cause with `kubectl logs <appsec-pod> -c crowdsec-appsec --previous | grep fatal`.
+
 ## Validate
 
 `cscli` runs inside the LAPI pod. The bundled helper supports this:
@@ -116,9 +139,35 @@ kubectl exec -n crowdsec $LAPI -- cscli lapi status
 kubectl exec -n crowdsec $LAPI -- cscli metrics
 ```
 
-WAF smoke test: `kubectl port-forward -n crowdsec svc/crowdsec-appsec-service
-7422:7422` then run the `curl` allow/block probe from
-[../appsec/deploy.md](../appsec/deploy.md) against `127.0.0.1:7422`.
+WAF smoke test — **run it from inside the cluster, not via `kubectl port-forward`.**
+Verified gotcha: AppSec api-key auth rejects requests arriving through
+`kubectl port-forward` with `401` even when the key is valid (the same key
+returns `200`/`403` over the in-cluster Service). Register a key in LAPI and
+probe the Service DNS from any pod:
+
+```bash
+LAPI=$(kubectl get pod -n crowdsec -l type=lapi -o name | head -1)
+KEY=$(kubectl exec -n crowdsec $LAPI -c crowdsec-lapi -- cscli bouncers add smoketest -o raw)
+AG=$(kubectl get pod -n crowdsec -l type=agent -o name | head -1)
+# ALLOW → 200
+kubectl exec -n crowdsec $AG -c crowdsec-agent -- wget -S -q -O /dev/null \
+  --header="X-Crowdsec-Appsec-Api-Key: $KEY" --header='X-Crowdsec-Appsec-Ip: 203.0.113.1' \
+  --header='X-Crowdsec-Appsec-Host: t' --header='X-Crowdsec-Appsec-Verb: GET' \
+  --header='X-Crowdsec-Appsec-Uri: /' http://crowdsec-appsec-service:7422/ 2>&1 | grep HTTP/
+# BLOCK (CVE-2017-9841) → 403
+kubectl exec -n crowdsec $AG -c crowdsec-agent -- wget -S -q -O /dev/null \
+  --header="X-Crowdsec-Appsec-Api-Key: $KEY" --header='X-Crowdsec-Appsec-Ip: 203.0.113.2' \
+  --header='X-Crowdsec-Appsec-Host: t' --header='X-Crowdsec-Appsec-Verb: GET' \
+  --header='X-Crowdsec-Appsec-Uri: /vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php' \
+  http://crowdsec-appsec-service:7422/ 2>&1 | grep HTTP/
+# confirm attribution
+kubectl exec -n crowdsec $(kubectl get pod -n crowdsec -l type=appsec -o name | head -1) \
+  -c crowdsec-appsec -- cscli metrics show appsec
+```
+
+(The crowdsec image has `wget`, not `curl`. `wget` sends a minimal User-Agent,
+so you'll also see `crowdsecurity/experimental-no-user-agent` in the metrics —
+harmless for the test.)
 
 ## Teardown
 
