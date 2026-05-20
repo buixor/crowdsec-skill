@@ -69,6 +69,31 @@ sudo cscli parsers list                              # what's installed/enabled
 - A source with `type: syslog` but only file-format lines (no syslog prefix)
   won't match the syslog parser — check with `cscli explain`.
 
+## Collection installed but no source feeds it
+
+The inverse, high-signal case — and the reason a webserver "isn't detected" even
+though its collection is enabled. If the source row is **entirely absent** from
+`cscli metrics show acquisition` (not 0 parsed — *no row at all*), CrowdSec never
+reads that service's logs, so nothing downstream can ever fire.
+
+```bash
+sudo cscli collections list                          # e.g. crowdsecurity/nginx enabled?
+sudo grep -r 'type:' /etc/crowdsec/acquis.d/         # is there a `type: nginx` source?
+```
+
+Collection enabled but no matching `type:` = guaranteed dead end. The classic
+cause: the service was installed **after** `cscli setup` ran — `cscli setup`
+only detects services running at that moment, so a later-added nginx never got an
+acquisition file. Fix either way:
+
+- Add an `acquis.d/*.yaml` with the right `filenames:` + `type:`. Mind
+  **non-default log paths** — e.g. nginx configured to log to
+  `/var/log/nginx/access-custom.log` instead of `access.log`; point at the path
+  nginx actually writes (`grep -rE 'access_log|log_format' /etc/nginx/`).
+- Or re-run `cscli setup detect` then `cscli setup install-acquisition`. Re-running
+  **appends** and does not dedupe — afterwards audit `acquis.d/` for the same path
+  appearing twice (double-counted events → premature bans).
+
 ## Reachability (when 0 lines read)
 
 - **File perms**: the `crowdsec` user must read the file. `sudo -u crowdsec head
@@ -95,5 +120,19 @@ a whitelist, not parsing → [no-alerts.md](./no-alerts.md).
   (`cscli collections install crowdsecurity/<svc>`), then
   `sudo systemctl reload crowdsec`. Authoring a custom parser is **out of scope
   for this skill**.
-- Wrong `type:` → correct the acquisition file, reload, re-check
-  `cscli metrics show acquisition`.
+- Wrong `type:` or newly added source → edit the acquisition file, then run the
+  validate → reload → verify loop:
+
+  ```bash
+  sudo crowdsec -t                          # validate config (exit 0 = OK)
+  sudo systemctl reload crowdsec            # reload also re-runs -t first
+  sudo cscli metrics show acquisition       # source of truth: new row, Lines read/parsed > 0
+  ```
+
+  `crowdsec -t` is the config validator and `cscli metrics show acquisition` is
+  the source of truth for whether a source is actually read.
+
+> **Self-test caveat:** a request you generate from `127.0.0.1` is whitelisted by
+> `crowdsecurity/whitelists`, so its row shows `Lines parsed == Lines whitelisted`
+> and **no decision** — that still proves the pipeline is wired. A real ban needs
+> a public source IP (genuine attacker traffic, or test from off-box / mobile data).

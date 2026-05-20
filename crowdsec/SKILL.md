@@ -95,6 +95,7 @@ These work in every environment. In docker/k8s prefix with `docker exec <name>` 
 | Enroll this engine in the Console | `cscli console enroll <key>` then reload (see [references/install/console.md](./references/install/console.md)) |
 | Replay a log file through parsers (read-only) | `cscli explain --file <path> --type <syslog\|nginx\|...>` |
 | Replay a single log line | `cscli explain --log '<line>' --type <type>` |
+| Validate config after editing any yaml (acquisition/profiles/config) | `crowdsec -t` (bare-metal; also auto-runs on `systemctl reload`) — then confirm the source reads with `cscli metrics show acquisition` |
 | See simulation state (alerts but no decisions) | `cscli simulation status` |
 | List decision profiles (filters / ban duration) | `cscli profiles list` — full content in `/etc/crowdsec/profiles.yaml` |
 

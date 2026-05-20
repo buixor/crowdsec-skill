@@ -50,6 +50,7 @@ cscli metrics
 ```
 Look at the **Acquisition Metrics** table. For each source you expect:
 
+- **Source row entirely absent** for a service you run (e.g. nginx active, no `file:/var/log/nginx/...` row) → no acquisition feeds it. Cross-check enabled collections vs declared types: `cscli collections list` vs `grep -r 'type:' /etc/crowdsec/acquis.d/`. Classic when the service was installed *after* `cscli setup` ran. See [parsing.md](./parsing.md) § "Collection installed but no source feeds it".
 - **Lines read = 0** → log file not reachable or rotated under it. Check perms, mount, and that the file path in `/etc/crowdsec/acquis.d/*.yaml` is correct. On 1.7.x the default file is split into per-service files in `acquis.d/`; there is no `/etc/crowdsec/acquis.yaml` after `cscli setup`.
 - **Lines read > 0, parsed = 0** → wrong `type:` label or no parser installed for it. See [parsing.md](./parsing.md).
 - **Mostly unparsed but some parsed** → mixed-format file (e.g. `/var/log/syslog` includes lines that aren't sshd/postfix). Often benign.

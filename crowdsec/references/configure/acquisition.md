@@ -7,5 +7,5 @@ Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/post_instal
 > - File datasource (paths, type/labels, multi-file globs)
 > - journald datasource (filters, units)
 > - syslog, kinesis, k8s_audit, docker, AppSec — when to pick each
-> - `cscli parsers test` / `cscli explain` to verify a source parses
+> - Verify a source after editing: `crowdsec -t` (validate config), `cscli metrics show acquisition` (confirm it's read), `cscli explain` (confirm a line parses)
 > - Common pitfalls: missing `type:` label (parser won't match), permission denied on log files, journald unit filter typos

@@ -14,6 +14,12 @@ If `cscli metrics show acquisition` shows 0 parsed for the relevant source, the
 problem is upstream — go to [parsing.md](./parsing.md) first. Everything below
 assumes lines **are** parsing.
 
+If the source row is **entirely absent** (not merely 0 parsed — *no row for the
+attacked service at all*, e.g. nginx running but no `file:/var/log/nginx/...`
+row), the service's logs aren't in acquisition. Jump straight to
+[parsing.md](./parsing.md) § "Collection installed but no source feeds it" rather
+than chasing scenarios below.
+
 ## 1 — Is the scenario receiving events?
 
 ```bash
