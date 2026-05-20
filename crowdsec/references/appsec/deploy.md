@@ -125,7 +125,7 @@ See also: [../configure/bouncers/web-servers.md](../configure/bouncers/web-serve
 | Env | What changes |
 |---|---|
 | **systemd / bare-metal** | The recipe above as-is. |
-| **Docker / compose** | AppSec runs inside the crowdsec container. Expose port 7422 on the compose network so bouncer containers can reach it. The acquisition file is mounted from the host or baked into a customised image. `docker compose exec crowdsec cscli appsec-*` for management commands. |
+| **Docker / compose** | AppSec runs inside the crowdsec container and must `listen_addr: 0.0.0.0:7422`. Bouncer containers reach it via the service name + internal port (`appsec_url: http://crowdsec:7422`), not the published port. The acquisition file is mounted from the host or baked into a customised image. `docker compose exec crowdsec cscli appsec-*` for management commands. **Containerized lua bouncers need a DNS `resolver` — see [../install/docker.md](../install/docker.md) § Bouncer key bootstrap.** |
 | **Kubernetes / Helm** | The official chart has `appsec.enabled: true` plus values for `appsec.listen_addr`, `appsec.config`, and a separate `appsec` Service. Bouncers target the AppSec Service DNS name. Required collections/rules can be listed in the chart's hub config. |
 
 ## Advanced shapes
