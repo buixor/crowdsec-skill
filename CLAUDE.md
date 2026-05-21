@@ -9,8 +9,10 @@ Conventions for authoring this skill. This governs how skill content is **writte
   imperative sentences. Cut throat-clearing, restated context, and filler.
 - **Write only the final, correct information.** Never record self-corrections, dead ends, or
   "actually, it turned out…" narration discovered while authoring. The reader gets the conclusion,
-  not the journey. This applies equally to inline expected-output hints: state the verified
-  outcome, never the wrong-then-fixed version.
+  not the journey. This applies equally to inline expected-output hints: state the correct
+  outcome, never the wrong-then-fixed version. Do not annotate content as *verified* (no
+  "(verified)", "Verified on…", "verified gotcha") — verification is guaranteed by this file,
+  not restated per-doc.
 - **Keep `SKILL.md` a router.** It is an index and decision layer that points to `references/`.
   Depth and recipes belong in the reference docs, not in `SKILL.md`.
 - **Cover every environment.** Each command or recipe carries its systemd / docker / k8s variant,
