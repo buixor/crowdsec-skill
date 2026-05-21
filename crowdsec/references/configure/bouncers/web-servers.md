@@ -1,12 +1,24 @@
-# Bouncers — Web servers (nginx, Traefik, Caddy)
+# Bouncers — Web servers (nginx, haproxy, apache, Traefik, Caddy)
 
-Canonical docs: <https://docs.crowdsec.net/u/bouncers/intro> (per-bouncer pages: nginx, traefik, caddy)
+Canonical docs: <https://docs.crowdsec.net/u/bouncers/intro> (per-bouncer pages: nginx, haproxy, apache, traefik, caddy)
 
 A web-server bouncer enforces two things at the edge:
 1. **LAPI decisions** — IPs banned by scenarios/CTI get a 403 (or captcha).
 2. **AppSec/WAF** (optional) — each request is forwarded to the AppSec listener for inline inspection before it reaches the backend.
 
 Both are served by the **same bouncer API key**. Wiring the WAF is just pointing the bouncer's AppSec URL at the `:7422` listener — see [../../appsec/deploy.md](../../appsec/deploy.md).
+
+## Pick your bouncer
+
+Jump to the section for your web server. The shared model above (decisions + optional WAF, one key) and the stream-lag / real-IP pitfalls recur across all of them.
+
+| Section | Package / module | WAF (AppSec)? |
+|---|---|---|
+| § nginx | `crowdsec-nginx-bouncer` (lua) | ✅ |
+| § haproxy | `crowdsec-haproxy-spoa-bouncer` (SPOA) | ✅ |
+| § apache | `crowdsec-apache2-bouncer` (`mod_crowdsec`) | ❌ decisions only |
+| § Traefik | `crowdsec-bouncer-traefik-plugin` (Yaegi middleware) | ✅ |
+| § Caddy | `caddy-crowdsec-bouncer` (compiled-in module) | ✅ |
 
 ## nginx — `crowdsec-nginx-bouncer`
 

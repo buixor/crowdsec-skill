@@ -64,7 +64,11 @@ Docker/k8s commands run inside the container/pod and do not need this.
 | "whitelist vs allowlist vs postoverflow", "which suppression layer should I use" | [references/configure/allowlists.md](./references/configure/allowlists.md) § Suppression mechanisms |
 | "alert me on slack/email/webhook" | [references/configure/notifications.md](./references/configure/notifications.md) *(TODO — stub)* |
 | "block at the firewall", "iptables", "nftables", "ipset" | [references/configure/bouncers/firewall.md](./references/configure/bouncers/firewall.md) |
-| "nginx / traefik / caddy bouncer" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) |
+| "nginx bouncer", "lua / openresty module" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § nginx |
+| "haproxy bouncer", "SPOA / SPOE" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § haproxy |
+| "apache bouncer", "mod_crowdsec" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § apache |
+| "traefik bouncer", "traefik plugin / middleware" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § Traefik |
+| "caddy bouncer", "caddy module / xcaddy" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § Caddy |
 | "wrong source IP", "real client IP", "behind Cloudflare / reverse proxy / NPM", "X-Forwarded-For", "everyone shows as the proxy IP" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) — per-bouncer real-IP/trusted-proxy sections |
 | "AppSec", "WAF", "virtual patching", "block by request shape" | [references/appsec/](./references/appsec/) — overview, deploy, configure, troubleshoot |
 | "Console", "enroll", "share signals" | [references/install/console.md](./references/install/console.md) |
