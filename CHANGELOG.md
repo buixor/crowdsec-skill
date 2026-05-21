@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `references/configure/acquisition.md` — file/journald/docker datasources, the
+  `labels.type` model, verification with `crowdsec -t` / `cscli metrics show acquisition`
+  / `cscli explain`, and common pitfalls.
+- `references/configure/profiles.md` — alert→decision flow, why alerts don't always ban,
+  `profiles.yaml` structure, ban/captcha/throttle, `duration_expr` escalation, simulation
+  mode, and allowlist interaction.
+- `references/configure/hub.md` — collections vs items, `update` vs `upgrade`, tainted-item
+  detection and repair, `_custom/` overrides, and the `sed -i` symlink-break pitfall.
+- `references/configure/bouncers/web-servers.md` — full Traefik
+  (`maxlerebourg/crowdsec-bouncer-traefik-plugin`) and Caddy
+  (`hslatman/caddy-crowdsec-bouncer`) setup, AppSec wiring, and real-client-IP handling,
+  replacing the previous canonical-pointer stubs.
+
+### Changed
+- `crowdsec/SKILL.md` — dropped the stub markers on acquisition/profiles/hub, added a
+  real-client-IP / reverse-proxy routing cue, and corrected the cheat sheet (`cscli profiles
+  list` does not exist; read `/etc/crowdsec/profiles.yaml`).
+
 ## [0.1.0] - 2026-05-20
 
 ## [0.1.0] - 2026-05-19
