@@ -330,13 +330,15 @@ docker exec crowdsec cscli metrics show appsec     # Processed/Blocked increment
 - **`stream` lag:** a fresh ban lands within `updateIntervalSeconds`; immediate ban-then-curl
   looks like a failure. (See [../../debug/bouncer-not-blocking.md](../../debug/bouncer-not-blocking.md).)
 
-## Caddy — `caddy-crowdsec-bouncer`
+## Caddy — `github.com/hslatman/caddy-crowdsec-bouncer`
 
 WAF-capable Caddy module ([`hslatman/caddy-crowdsec-bouncer`](https://github.com/hslatman/caddy-crowdsec-bouncer)).
 Caddy has no plugin loader, so the module must be **compiled in** — build a custom binary/image
 with `xcaddy`.
 
 ### Build with the module
+
+**Docker / Linux (Dockerfile):**
 
 ```dockerfile
 FROM caddy:2.10-builder AS builder
@@ -349,6 +351,24 @@ COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 
 (`/http` enforces decisions; `/appsec` adds the WAF handler. Add `/layer4` only for L4
 proxying.) Mint a bouncer key with `cscli bouncers add caddy -o raw`.
+
+**FreeBSD/OPNsense** (no Go in base, no Docker):
+
+```bash
+# Download Go binary for freebsd-amd64
+fetch https://go.dev/dl/go1.22.4.freebsd-amd64.tar.gz   # or latest
+tar -C /usr/local -xzf go*.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+
+sudo pkg install -y git   # xcaddy needs git for module resolution
+
+GOPATH=$HOME/go go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+GOPATH=$HOME/go $HOME/go/bin/xcaddy build \
+    --with github.com/hslatman/caddy-crowdsec-bouncer \
+    --output /tmp/caddy-cs
+
+sudo cp /tmp/caddy-cs /usr/local/bin/caddy-cs
+```
 
 ### Caddyfile
 
@@ -377,26 +397,76 @@ proxying.) Mint a bouncer key with `cscli bouncers add caddy -o raw`.
 }
 ```
 
-### Verify end-to-end (through Caddy)
+### Config (JSON API — for OPNsense/FreeBSD or programmatic use)
+
+The bouncer exposes two handlers and one top-level app:
+
+```json
+{
+  "apps": {
+    "crowdsec": {
+      "api_url": "http://127.0.0.1:8080",
+      "api_key": "<bouncer-key>",
+      "appsec_url": "http://127.0.0.1:7422",
+      "ticker_interval": "15s",
+      "enable_streaming": true,
+      "appsec_fail_open": false
+    },
+    "http": {
+      "servers": {
+        "demo": {
+          "listen": [":8080"],
+          "routes": [
+            {
+              "handle": [
+                {"handler": "appsec"},
+                {"handler": "crowdsec"},
+                {
+                  "handler": "reverse_proxy",
+                  "upstreams": [{"dial": "127.0.0.1:8888"}]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+| Handler | Function |
+|---|---|
+| `http.handlers.appsec` | Forwards each request to AppSec (port 7422) for WAF inspection — returns 403 on inband rule match |
+| `http.handlers.crowdsec` | Checks the LAPI decision list for the client IP — returns 403 on active ban |
+
+> **Both handlers are required.** `crowdsec` alone silently skips WAF inspection — `cscli metrics show appsec` will show 0 processed. Put `appsec` first in the route.
+
+### Verify end-to-end
 
 ```bash
-curl -sS -o /dev/null -w 'normal:       %{http_code}\n' http://127.0.0.1:8082/                                                      # 200
-curl -sS -o /dev/null -w 'appsec block: %{http_code}\n' 'http://127.0.0.1:8082/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php'  # 403
-docker exec crowdsec cscli decisions add --ip 198.51.100.200 --duration 5m --reason test
-sleep 12                                                                                  # ticker_interval=10s
-curl -sS -o /dev/null -w 'banned XFF:   %{http_code}\n' -H 'X-Forwarded-For: 198.51.100.200' http://127.0.0.1:8082/  # 403
-curl -sS -o /dev/null -w 'clean XFF:    %{http_code}\n' -H 'X-Forwarded-For: 203.0.113.9'   http://127.0.0.1:8082/  # 200
-docker exec crowdsec cscli decisions delete --ip 198.51.100.200
+# AppSec block (CVE-2017-9841) → 403
+curl -sS -o /dev/null -w 'appsec block: %{http_code}\n' \
+    'http://<host-ip>:8080/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php'
+
+# LAPI ban block
+cscli decisions add --ip <test-ip> --duration 2m --reason test
+sleep 16   # wait for streaming ticker
+curl -sS -o /dev/null -w 'banned: %{http_code}\n' http://<host-ip>:8080/
+
+cscli metrics show appsec   # confirm processed/blocked counters
 ```
+
+> **Do not test via `127.0.0.1:<bouncer-port>`** if LAPI is on `127.0.0.1:8080` and the bouncer frontend shares port `8080`. Loopback traffic routes to LAPI, not the bouncer. Use the host's internal/external IP instead.
 
 ### Pitfalls
 
-- **Module not compiled in:** the stock `caddy` image has no `crowdsec` directive — Caddy
-  errors on the Caddyfile. You must `xcaddy build` (above) or use a prebuilt image that bundles
-  the module.
-- **Real IP:** without `trusted_proxies` + `client_ip_headers`, Caddy treats the proxy/Docker
-  hop as the client and bans never match. Set both in the global `servers` block.
-- **Handler order:** put `appsec` before `crowdsec` in the route so WAF inspection runs ahead of
-  decision enforcement.
-- **WAF off:** omit `appsec_url` and the module enforces decisions only. AppSec must listen on
-  `0.0.0.0:7422` for a containerized Caddy to reach it.
+- **`crowdsec-caddy-bouncer` / `crowdsecurity/caddy-cs-bouncer` do not exist** — these names return 404 on GitHub and pkg.go.dev. The correct module is `github.com/hslatman/caddy-crowdsec-bouncer`.
+- **Module not compiled in:** the stock `caddy` image has no `crowdsec` directive — Caddy errors on the Caddyfile. You must `xcaddy build` (above) or use a prebuilt image that bundles the module.
+- **xcaddy needs `git`** — the build fails with "git not found" on a minimal FreeBSD install. `sudo pkg install -y git` first.
+- **Build to `/tmp`, then copy** — xcaddy may not have write access to `/usr/local/bin` directly; build to `/tmp/caddy-cs`, then `sudo cp`.
+- **Real IP:** without `trusted_proxies` + `client_ip_headers`, Caddy treats the proxy/Docker hop as the client and bans never match. Set both in the global `servers` block.
+- **Handler order:** put `appsec` before `crowdsec` in the route so WAF inspection runs ahead of decision enforcement.
+- **WAF off:** omit `appsec_url` and the module enforces decisions only. AppSec must listen on `0.0.0.0:7422` for a containerized Caddy to reach it.
+- **LAPI port conflict** — see [../../appsec/deploy.md](../../appsec/deploy.md) § OPNsense / FreeBSD: LAPI port conflict.
+
