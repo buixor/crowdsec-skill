@@ -30,8 +30,9 @@ volumes:
 ```
 
 Bring up: `docker compose up -d`. The image installs the `COLLECTIONS` on
-first boot (verified: `sshd`, `appsec-virtual-patching`, `appsec-generic-rules`
-all `enabled` after startup).
+startup — and re-runs the install on **every** start, not just the first (see
+§2). Verified: `sshd`, `appsec-virtual-patching`, `appsec-generic-rules` all
+`enabled` after startup.
 
 ## The gotchas that actually bite
 
@@ -49,22 +50,53 @@ labels: { type: syslog }
 source: file
 ```
 
-A path that exists on the host but isn't mounted reads **0 lines** silently —
-verify with `docker exec crowdsec cscli metrics show acquisition`. To read
-*other containers'* logs instead of files, use the built-in Docker datasource
-(`datasource_docker` is compiled in) with `source: docker` and the docker
-socket mounted — but that's a different acquisition shape; start with file
-mounts.
+A path that exists on the host but isn't mounted reads **0 lines** — the source
+simply doesn't appear in the metrics (the agent log carries a
+`No matching files for pattern <path>` warning, so it's not entirely silent).
+Verify with `docker exec crowdsec cscli metrics show acquisition`.
 
-### 2. `COLLECTIONS` only applies to a *fresh* config volume
+To read *other containers'* logs instead of host files, use the built-in Docker
+datasource (`datasource_docker` is compiled in). This requires mounting the
+Docker socket (`/var/run/docker.sock:/var/run/docker.sock:ro`) and adding an
+acquisition like:
 
-`COLLECTIONS`/`PARSERS`/`SCENARIOS` env vars run on first boot **when
-`/etc/crowdsec` is empty**. Because the compose above persists
-`cs-config:/etc/crowdsec`, editing the env var later does nothing — the volume
-already has a config. After first boot, manage the hub with
-`docker exec crowdsec cscli collections install …` (and `docker compose restart`
-or `cscli` reload), or recreate the config volume. Don't expect changing the
-env var to retro-install.
+> [!WARNING]
+> Mounting `/var/run/docker.sock` gives the container root-equivalent control
+> over the Docker host, even when mounted `:ro`. Only do this on trusted hosts.
+> If possible, prefer lower-privilege alternatives such as mounting specific
+> log files, using a least-privileged log shipper, or running CrowdSec outside
+> Docker.
+
+```yaml
+# acquis.d/docker.yaml
+source: docker
+container_name:
+  - web            # or container_name_regexp / use_container_labels
+labels:
+  type: nginx
+```
+
+(verified: crowdsec subscribes to Docker events, tails the container's
+stdout/stderr, and scenarios fire on the containerized workload). The engine
+runs as root so it can read the socket; a non-root container needs the `docker`
+group via `GID`.
+
+### 2. Hub env vars install on *every* boot — but never *uninstall*
+
+`COLLECTIONS`/`PARSERS`/`SCENARIOS` (and the other hub env vars) are processed on
+**every** container start, not just the first — the entrypoint runs
+`cscli <type> install` for each listed item each time (skipping items you've
+tainted or made local). So **adding** an item and recreating the container
+(`docker compose up -d`) *does* install it, even on a persisted
+`cs-config:/etc/crowdsec` volume. (Verified: added `crowdsecurity/nginx` to
+`COLLECTIONS`, recreated, it installed.)
+
+The catch is the other direction: **removing** an item from the env var does
+**not** uninstall it. To remove, use the matching
+`DISABLE_COLLECTIONS`/`DISABLE_PARSERS`/… env var, or
+`docker exec crowdsec cscli collections remove …`. Post-boot you can manage the
+hub directly with `docker exec crowdsec cscli collections install …` then
+`docker compose restart`.
 
 ### 3. Port conflict with a host-installed engine
 
@@ -81,8 +113,12 @@ or the published port reaches nothing. Verified with `7423:7422` + a host
 
 ### 5. Other env-in-container realities
 
-- **`GID`**: set it so the container user can read mounted journald
-  sockets/group-readable logs; mismatch = 0 lines read despite a correct mount.
+- **`GID`**: the official image runs the engine as **root**, so plain
+  bind-mounted log *files* are read regardless of `GID` (root bypasses group
+  perms — a `GID` mismatch does **not** silently zero out a file mount on the
+  default image). `GID` matters when you run the container as non-root, or for
+  group-restricted **sockets**: set it to the owning group (e.g. `docker` for
+  the `source: docker` socket, or the journald log group) or those reads fail.
 - **Time skew**: a container with a wrong clock fails CAPI TLS
   (`cscli capi status` errors). Containers normally inherit host time — only an
   issue with custom runtimes.
@@ -96,10 +132,27 @@ or the published port reaches nothing. Verified with `7423:7422` + a host
 docker exec crowdsec cscli bouncers add my-bouncer -o raw
 ```
 
-Use that key in the bouncer's config (`api_url` → the mapped host port, e.g.
-`http://<host>:8081/`). For declarative bootstrap, the image also honours
-`BOUNCER_KEY_<name>` env vars; `cscli bouncers add` post-hoc is simplest for
+Use that key in the bouncer's config. For declarative bootstrap, the image also
+honours `BOUNCER_KEY_<name>` env vars (verified — the named bouncer appears in
+`cscli bouncers list` on boot); `cscli bouncers add` post-hoc is simplest for
 one-offs.
+
+**Endpoint depends on where the bouncer runs:**
+
+- *On the host* → the **mapped** host ports: `api_url: http://<host>:8081`,
+  `appsec_url: http://<host>:7423`.
+- *In a container on the same compose network* → the crowdsec **service name +
+  internal** ports: `api_url: http://crowdsec:8080`,
+  `appsec_url: http://crowdsec:7422` (the unmapped container ports — don't use
+  the published `8081`/`7423` from inside the network). Verified end-to-end with
+  allow 200 / block 403 through a containerized nginx bouncer.
+
+> **lua/OpenResty bouncers in a container need a DNS `resolver`.** The nginx lua
+> bouncer resolves `crowdsec` via lua cosockets, which ignore the system
+> resolver. Without an explicit `resolver 127.0.0.11;` (Docker's embedded DNS)
+> in the nginx `http` context, every LAPI pull and AppSec check fails with
+> `no resolver defined to resolve "crowdsec"` and the bouncer silently falls
+> back. Add that directive (or pin a fixed IP) for any containerized lua bouncer.
 
 ## Management & diagnostics
 
