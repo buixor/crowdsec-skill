@@ -30,8 +30,9 @@ volumes:
 ```
 
 Bring up: `docker compose up -d`. The image installs the `COLLECTIONS` on
-first boot (verified: `sshd`, `appsec-virtual-patching`, `appsec-generic-rules`
-all `enabled` after startup).
+startup — and re-runs the install on **every** start, not just the first (see
+§2). Verified: `sshd`, `appsec-virtual-patching`, `appsec-generic-rules` all
+`enabled` after startup.
 
 ## The gotchas that actually bite
 
