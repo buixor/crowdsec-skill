@@ -39,6 +39,21 @@ kubectl get pods -A 2>/dev/null | grep -i crowdsec
 
 If nothing matches and the user reports CrowdSec is installed, ask where: a vendor appliance, a custom image, a binary in `/opt/`, or a remote host. Otherwise pivot to install: see [references/install/](./references/install/).
 
+## Privileges — bare-metal / systemd prerequisite
+
+On bare-metal/systemd, `cscli` and `crowdsec` need **root** (they read
+`/etc/crowdsec/`, the DB under `/var/lib/crowdsec/`, and control the systemd
+unit). Before running anything that touches config or state, confirm the user
+is **root or has sudo**:
+
+```bash
+id -u   # 0 = root; otherwise the user needs sudo
+```
+
+If they are neither root nor a sudoer, **stop and ask them to grant it** — don't
+guess. Once confirmed, run bare-metal commands as root or prefixed with `sudo`.
+Docker/k8s commands run inside the container/pod and do not need this.
+
 ## Step 2 — Detect the intent
 
 | Cue from user | Go to |
@@ -74,7 +89,7 @@ For anything debug-shaped, the first move is almost always:
 
 ## Step 3 — Universal `cscli` cheat sheet
 
-These work in every environment. In docker/k8s prefix with `docker exec <name>` / `kubectl exec -n <ns> <pod> --`.
+These work in every environment. On bare-metal/systemd, prefix with `sudo` (unless you are root) — see **Privileges** above. In docker/k8s prefix with `docker exec <name>` / `kubectl exec -n <ns> <pod> --` (which run as root inside the container/pod).
 
 | Purpose | Command |
 |---|---|
