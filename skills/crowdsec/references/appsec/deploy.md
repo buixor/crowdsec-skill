@@ -4,6 +4,10 @@ verified:
     version: "1.7.8"
     env: systemd
     notes: "nginx acquisition + AppSec deploy"
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: k8s
+    notes: "k8s with traefik + AppSec"
 ---
 
 # AppSec — Deploy

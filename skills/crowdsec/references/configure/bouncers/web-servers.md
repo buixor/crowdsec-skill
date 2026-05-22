@@ -4,6 +4,10 @@ verified:
     version: "1.7.8"
     env: systemd
     notes: "nginx bouncer path only"
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: k8s
+    notes: "k8s with traefik + AppSec"
 ---
 
 # Bouncers — Web servers (nginx, haproxy, apache, Traefik, Caddy)
