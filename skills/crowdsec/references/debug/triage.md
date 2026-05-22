@@ -10,9 +10,9 @@ Canonical docs: <https://docs.crowdsec.net/docs/next/troubleshooting/intro> · `
 ## The fast path: run `diagnose.sh`
 
 ```bash
-~/.claude/skills/crowdsec/scripts/diagnose.sh
+bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh
 # or, with custom log tail and a saved text copy:
-~/.claude/skills/crowdsec/scripts/diagnose.sh --log-lines 500 --output /tmp/cs-triage.txt
+bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh --log-lines 500 --output /tmp/cs-triage.txt
 ```
 
 `diagnose.sh` wraps `cscli support dump --fast` — the official forensic snapshot — and emits two things:

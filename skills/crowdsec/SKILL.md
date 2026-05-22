@@ -75,7 +75,7 @@ Docker/k8s commands run inside the container/pod and do not need this.
 | "upgrade", "back up", "roll back", "new version", "tainted items after upgrade" | [references/operate/upgrades.md](./references/operate/upgrades.md) |
 | "multiple agents", "remote LAPI", "mTLS", "postgres backend" | [references/operate/multi-server.md](./references/operate/multi-server.md) *(TODO — stub)* |
 | "is it working?", "smoke test", "validate install", "verify setup", "did detection / WAF / blocking actually wire up?" | [references/operate/health-check.md](./references/operate/health-check.md) |
-| "it's broken" / "not working" / general diagnosis | [references/debug/triage.md](./references/debug/triage.md) → run `~/.claude/skills/crowdsec/scripts/diagnose.sh` |
+| "it's broken" / "not working" / general diagnosis | [references/debug/triage.md](./references/debug/triage.md) → run `bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh` |
 | "logs not parsed", "0 parsed" | [references/debug/parsing.md](./references/debug/parsing.md) |
 | "no alerts firing" | [references/debug/no-alerts.md](./references/debug/no-alerts.md) |
 | "decision exists but not blocked" | [references/debug/bouncer-not-blocking.md](./references/debug/bouncer-not-blocking.md) |
@@ -85,7 +85,7 @@ Docker/k8s commands run inside the container/pod and do not need this.
 For anything debug-shaped, the first move is almost always:
 
 ```bash
-~/.claude/skills/crowdsec/scripts/diagnose.sh
+bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh
 ```
 
 (or `--env docker --container <name>` / `--env k8s --namespace ... --pod ...`).

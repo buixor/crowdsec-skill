@@ -81,6 +81,14 @@ jobs:
             echo "[${V}]: ${REPO}/compare/v${PREV}...v${V}"
           } > tmp && mv tmp CHANGELOG.md
 
+      - name: Update README version badge
+        env:
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          sed -E -i \
+            "s|version-[0-9]+\.[0-9]+\.[0-9]+-blue|version-${V}-blue|" \
+            README.md
+
       - name: Validate plugin
         run: |
           npm install -g @anthropic-ai/claude-code
@@ -89,9 +97,9 @@ jobs:
       - name: Build web-uploadable skill archive
         run: |
           # claude.ai's web skill uploader needs SKILL.md at the archive root,
-          # so zip the *contents* of crowdsec/ (not the folder itself).
+          # so zip the *contents* of skills/crowdsec/ (not the folder itself).
           VERSION="${{ steps.ver.outputs.version }}"
-          ( cd crowdsec && zip -r "../crowdsec-skill-v${VERSION}.zip" . )
+          ( cd skills/crowdsec && zip -r "../../crowdsec-skill-v${VERSION}.zip" . )
 
       - name: Attach archive to the release
         if: github.event_name == 'release'
@@ -106,7 +114,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .claude-plugin/plugin.json .claude-plugin/marketplace.json CHANGELOG.md
+          git add .claude-plugin/plugin.json .claude-plugin/marketplace.json CHANGELOG.md README.md
           if git diff --cached --quiet; then
             echo "Nothing to commit."
           else

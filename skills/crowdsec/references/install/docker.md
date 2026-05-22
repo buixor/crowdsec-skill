@@ -157,7 +157,7 @@ Every `cscli` command works via `docker exec crowdsec cscli …`. The bundled
 helper supports this directly:
 
 ```bash
-~/.claude/skills/crowdsec/scripts/diagnose.sh --env docker --container crowdsec
+bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh --env docker --container crowdsec
 ```
 
 (Detects `Environment: docker`; captures version plus the full forensic

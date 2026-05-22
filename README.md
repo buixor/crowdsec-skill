@@ -4,9 +4,9 @@
 
 # CrowdSec skill for Claude Code
 
-**Install, configure, operate, and debug [CrowdSec](https://www.crowdsec.net) — straight from your terminal, with Claude doing the heavy lifting.**
+**Install, configure, operate, and debug [CrowdSec](https://doc.crowdsec.net) — straight from your terminal, with Claude doing the heavy lifting.**
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue)](.claude-plugin/plugin.json)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code skill](https://img.shields.io/badge/Claude%20Code-skill-8A2BE2)](https://docs.claude.com/en/docs/claude-code/skills)
 [![CrowdSec](https://img.shields.io/badge/CrowdSec-docs-orange)](https://docs.crowdsec.net)
@@ -19,21 +19,20 @@ This is an [Agent Skill](https://docs.claude.com/en/docs/claude-code/skills) tha
 hands-on CrowdSec operator. Ask it to stand up an engine, wire a bouncer, enable
 the WAF, or figure out why nothing's getting blocked — it knows the `cscli`
 commands, the config layout, the failure modes, and the safe way through each of
-them across **bare-metal/systemd, Docker, and Kubernetes/Helm**.
+them across **bare-metal/systemd, Docker, OpnSense and Kubernetes/Helm**.
 
 
 ## What it covers
 
 | Area | Covered |
 |---|---|
-| **Install** | bare-metal/systemd · Docker · Kubernetes/Helm · Console enrollment |
+| **Install** | bare-metal/systemd · Docker · Kubernetes/Helm · OpnSense · Console enrollment |
 | **Bouncers** | firewall (iptables/nftables/ipset) · nginx · traefik · caddy · apache · and more |
 | **WAF / AppSec** | deploy · configure · troubleshoot the AppSec component |
 | **Hub** | install collections/parsers/scenarios · update · debug |
 | **Configure** | acquisition · profiles & ban durations · notifications · allowlists |
 | **Operate** | health checks & smoke tests · upgrades & rollback · multi-server / remote LAPI / mTLS |
 | **Debug** | logs not parsing · no alerts firing · bouncer not blocking · specific errors |
-| **Migrate** | fail2ban → CrowdSec |
 
 ## 🚀 Install
 
@@ -61,8 +60,7 @@ Update later with:
 
 **On Claude.ai (web):** download `crowdsec-skill-vX.Y.Z.zip` from the
 [latest release](https://github.com/crowdsecurity/crowdsec-skill/releases/latest)
-and upload it in the web skill uploader. (Use that asset — its `SKILL.md` sits
-at the archive root, which the uploader requires.)
+and upload it in the web skill uploader.
 
 ## 💬 Example prompts
 
@@ -83,30 +81,6 @@ it does **not author** detection content. Writing a parser, scenario, or WAF
 
 For authoring, head to the [CrowdSec Hub](https://hub.crowdsec.net) and the
 [detection-engineering docs](https://docs.crowdsec.net/docs/next/local_api/intro).
-
-## 📂 What's inside
-
-```
-crowdsec-skill/
-├── .claude-plugin/         # marketplace + plugin manifests
-├── crowdsec/
-│   ├── SKILL.md            # skill entry point (auto-loaded by Claude Code)
-│   ├── references/         # ~25 topic-specific reference docs
-│   │   ├── install/        #   bare-metal · docker · kubernetes · console
-│   │   ├── configure/      #   acquisition · hub · profiles · notifications · allowlists · bouncers
-│   │   ├── appsec/         #   WAF overview · deploy · configure · troubleshoot
-│   │   ├── operate/        #   health-check · upgrades · multi-server
-│   │   ├── debug/          #   triage · parsing · no-alerts · bouncer-not-blocking · common-errors
-│   │   └── migrate/        #   from-fail2ban
-│   └── scripts/
-│       └── diagnose.sh     # first-look triage; wraps `cscli support dump`
-├── CHANGELOG.md
-└── LICENSE
-```
-
-`diagnose.sh` is the go-to first move for any "it's broken" prompt — it collects
-a support dump (auto-detecting systemd / Docker / Kubernetes) and a curated
-report Claude can read.
 
 ## 🤝 Contributing
 

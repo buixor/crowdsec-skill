@@ -132,7 +132,7 @@ Symptom is the `crowdsec-appsec` pod in `CrashLoopBackOff` with the startup prob
 `cscli` runs inside the LAPI pod. The bundled helper supports this:
 
 ```bash
-~/.claude/skills/crowdsec/scripts/diagnose.sh --env k8s --namespace crowdsec --pod <lapi-pod>
+bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh --env k8s --namespace crowdsec --pod <lapi-pod>
 # manual equivalent:
 LAPI=$(kubectl get pod -n crowdsec -l type=lapi -o name | head -1)
 kubectl exec -n crowdsec $LAPI -- cscli lapi status
