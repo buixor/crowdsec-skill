@@ -26,7 +26,7 @@ If it matches, the bouncer is *correctly* not blocking. Allowlists are **not
 retroactive** and they don't delete existing decisions — if you added an
 allowlist but the IP is still banned, delete the decision too
 (`cscli decisions delete -i <ip>`). See
-[../configure/allowlists.md](../configure/allowlists.md).
+[../configure/allowlists.md](../../configure/allowlists.md).
 
 ## 1 — Decision actually active and the right scope/family
 
@@ -97,18 +97,18 @@ sudo nft list set ip crowdsec crowdsec-blacklists-cscli | grep <ip>
   the bouncer service isn't running: `systemctl status crowdsec-firewall-bouncer`.
 - Counter not incrementing on a known-banned source you curl from →
   traffic isn't traversing the hooked chain (e.g. it's container-internal on
-  Docker's own table). See [../configure/bouncers/firewall.md](../configure/bouncers/firewall.md).
+  Docker's own table). See [../../configure/bouncers/firewall.md](../../configure/bouncers/firewall.md).
 
 **Web-server bouncer** (nginx/traefik/caddy): the bouncer trusts the *client*
 IP. Behind a proxy/CDN without correct `X-Forwarded-For` trust config, it bans
 the proxy or sees the wrong IP and never matches. Also check **mode**:
 `captcha` mode returns a challenge page, not a 403 — "not blocking" may actually
-be "serving the captcha". See [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md).
+be "serving the captcha". See [../../configure/bouncers/web-servers.md](../../configure/bouncers/web-servers.md).
 
 **AppSec**: distinct from a decision bouncer — AppSec blocks by request *shape*
 inband (403 from AppSec), not by IP decision. If an inband rule should 403 but
 doesn't, the bouncer isn't forwarding to the AppSec endpoint, or the config is
-out-of-band only. See [../appsec/troubleshoot.md](../appsec/troubleshoot.md).
+out-of-band only. See [../../appsec/troubleshoot.md](../../appsec/troubleshoot.md).
 
 ## 6 — CAPI/blocklist not imported yet
 

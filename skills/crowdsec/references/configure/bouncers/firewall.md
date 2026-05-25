@@ -64,7 +64,7 @@ Only register manually when the bouncer runs on a **different host** than LAPI
 > `/var/log/crowdsec-firewall-bouncer.log` (and the dpkg `--configure` step errors).
 > Re-register: `cscli bouncers delete <name>`, `KEY=$(cscli bouncers add fw-local -o raw)`,
 > write it into the yaml's `api_key:`, `systemctl restart crowdsec-firewall-bouncer`.
-> See [../../debug/bouncer-not-blocking.md](../../debug/bouncer-not-blocking.md) § 3.
+> See [../../debug/symptoms/not-blocked.md](../../debug/symptoms/not-blocked.md) § 3.
 
 ## 3 — What it creates in nftables
 
@@ -140,7 +140,7 @@ sudo cscli decisions delete -i 192.0.2.66
   container-to-container blocking matters.
 - **"Banned but still reachable"** → almost always `update_frequency` not
   elapsed, `disable_ipv6` masking a v6 client, or the bouncer service stopped.
-  Full decision tree: [../../debug/bouncer-not-blocking.md](../../debug/bouncer-not-blocking.md).
+  Full decision tree: [../../debug/symptoms/not-blocked.md](../../debug/symptoms/not-blocked.md).
 
 ## Teardown
 

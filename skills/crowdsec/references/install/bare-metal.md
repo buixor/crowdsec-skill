@@ -77,10 +77,10 @@ sudo cscli hub list           # collections installed by cscli setup
 
 If `cscli metrics` shows acquisition sources but **0 parsed**, the source is
 matched but the parser collection for it isn't installed — see
-[../debug/parsing.md](../debug/parsing.md). If the service won't start, the
+[../debug/symptoms/parsing.md](../debug/symptoms/parsing.md). If the service won't start, the
 single most common cause is a malformed file in `acquis.d/` (the `-t` pre-check
 prints the offending file + line to the journal) — see
-[../debug/common-errors.md](../debug/common-errors.md).
+[../debug/common/errors.md](../debug/common/errors.md).
 
 ## 4 — Common post-install pitfalls
 

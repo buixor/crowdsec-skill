@@ -49,7 +49,7 @@ Expected: one row with `kind: crowdsec`, scope `Ip:<your-public-ip>`. The test s
 
 **Common failure paths** (in order to check):
 1. *No row, no parser hit* → the web server's logs aren't being read. `cscli metrics show acquisition` — does your access log show non-zero "Lines read"? If not, see [../configure/acquisition.md](../configure/acquisition.md).
-2. *Logs read, 0 parsed* → wrong `type:` label vs installed parser. See [../debug/parsing.md](../debug/parsing.md).
+2. *Logs read, 0 parsed* → wrong `type:` label vs installed parser. See [../debug/symptoms/parsing.md](../debug/symptoms/parsing.md).
 3. *Source IP is private* → see the warning at top of page.
 
 ## 2. Engine detection: SSH
@@ -136,7 +136,7 @@ curl -I https://<your-public-service-url>/
 sudo cscli decisions list
 ```
 
-If the request still goes through after a successful add → the bouncer isn't polling fast enough, isn't enforcing, or doesn't have the right scope. See [../debug/bouncer-not-blocking.md](../debug/bouncer-not-blocking.md).
+If the request still goes through after a successful add → the bouncer isn't polling fast enough, isn't enforcing, or doesn't have the right scope. See [../debug/symptoms/not-blocked.md](../debug/symptoms/not-blocked.md).
 
 ## Automating the health-check
 

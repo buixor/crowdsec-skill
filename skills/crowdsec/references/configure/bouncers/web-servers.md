@@ -340,7 +340,7 @@ docker exec crowdsec cscli metrics show appsec     # Processed/Blocked increment
 - **WAF off silently:** `crowdsecAppsecEnabled` defaults to `false`, and AppSec must listen on
   `0.0.0.0:7422` (not loopback) for a containerized Traefik to reach it.
 - **`stream` lag:** a fresh ban lands within `updateIntervalSeconds`; immediate ban-then-curl
-  looks like a failure. (See [../../debug/bouncer-not-blocking.md](../../debug/bouncer-not-blocking.md).)
+  looks like a failure. (See [../../debug/symptoms/not-blocked.md](../../debug/symptoms/not-blocked.md).)
 
 ### Kubernetes (Helm) — extra gotchas
 

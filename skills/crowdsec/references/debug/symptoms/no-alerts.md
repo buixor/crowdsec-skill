@@ -41,7 +41,7 @@ sudo cscli metrics show scenarios
   collection if partial.
 - **Events in, "overflow" 0**: traffic didn't cross the scenario threshold
   (e.g. `ssh-bf` needs N failures in the window). Generate enough events, or
-  test with a purpose-built probe — see [../operate/health-check.md](../operate/health-check.md).
+  test with a purpose-built probe — see [../../operate/health-check.md](../../operate/health-check.md).
 
 ## 2 — Source IP whitelisted (the most common "silent" cause)
 
@@ -60,7 +60,7 @@ mobile data, or temporarily `cscli parsers remove crowdsecurity/whitelists`
 
 If the *alert* exists but no ban does, it's an **allowlist**, not a whitelist
 parser — these are different layers. See
-[../configure/allowlists.md](../configure/allowlists.md) § Suppression
+[../../configure/allowlists.md](../../configure/allowlists.md) § Suppression
 mechanisms for the full comparison.
 
 ## 3 — Simulation mode masking the alert
@@ -81,12 +81,12 @@ The agent detects but can't persist to LAPI. Check the agent log
 (`/var/log/crowdsec.log`) for write errors:
 
 - **`database is locked`** (sqlite): concurrent writers / slow disk — see
-  [common-errors.md](./common-errors.md).
+  [../common/errors.md](../common/errors.md).
 - **Disk full**: `df -h /var/lib/crowdsec` — sqlite write fails silently from
   the user's view.
 - **Remote LAPI unreachable**: agent-only node can't reach the LAPI host.
   `cscli lapi status` from the agent. See
-  [../operate/multi-server.md](../operate/multi-server.md).
+  [../../operate/multi-server.md](../../operate/multi-server.md).
 
 ## 5 — Right scenario at all?
 

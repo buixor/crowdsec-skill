@@ -64,7 +64,7 @@ appsec:
 The chart ships `container_runtime: docker`. kind, k3d, and most
 managed clusters (EKS/GKE/AKS recent) run **containerd**. With the wrong value
 the agent reads pod logs in the wrong format → lines read, **0 parsed**, no
-alerts (the [parsing.md](../debug/parsing.md) symptom). Set
+alerts (the [parsing.md](../debug/symptoms/parsing.md) symptom). Set
 `container_runtime: containerd` unless your nodes genuinely use the Docker
 runtime. Confirm with `kubectl get nodes -o wide` → CONTAINER-RUNTIME column.
 
