@@ -64,6 +64,12 @@ Download `crowdsec-skill-vX.Y.Z.zip` from the
 [latest release](https://github.com/crowdsecurity/crowdsec-skill/releases/latest)
 and upload it in the web skill uploader.
 
+**Or directly with skills.sh**
+
+```bash
+npx skills add  crowdsecurity/crowdsec-skill
+```
+
 ## 💬 Example prompts
 
 Once installed, Claude picks the skill up whenever your prompt involves CrowdSec:
