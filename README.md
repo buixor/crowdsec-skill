@@ -36,10 +36,10 @@ them across **bare-metal/systemd, Docker, OpnSense and Kubernetes/Helm**.
 
 ## 🚀 Install
 
-The skill loads automatically once installed — no flags, no setup. Just talk to
+The skill loads automatically once installed. Just talk to
 Claude about CrowdSec.
 
-**From the CrowdSec marketplace (available now):**
+**On Claude**
 
 ```text
 /plugin marketplace add crowdsecurity/crowdsec-skill
@@ -52,13 +52,15 @@ Update later with:
 /plugin marketplace update crowdsecurity
 ```
 
-**From the Anthropic community marketplace** _(once published)_:
+**On Codex:** install the skill with:
 
 ```text
-/plugin install crowdsec@claude-community
+skill-installer crowdsecurity/crowdsec-skill
 ```
 
-**On Claude.ai (web):** download `crowdsec-skill-vX.Y.Z.zip` from the
+**On Claude.ai (web)**
+
+Download `crowdsec-skill-vX.Y.Z.zip` from the
 [latest release](https://github.com/crowdsecurity/crowdsec-skill/releases/latest)
 and upload it in the web skill uploader.
 
