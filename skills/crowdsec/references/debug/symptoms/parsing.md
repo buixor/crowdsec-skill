@@ -105,14 +105,11 @@ acquisition file. Fix either way:
 ## Reachability (when 0 lines read)
 
 - **File perms**: the `crowdsec` user must read the file. `sudo -u crowdsec head
-  <path>` — if that fails, it's perms (or SELinux/AppArmor — see
-  [common-errors.md](./common-errors.md)).
+  <path>` — if that fails, it's perms (or SELinux/AppArmor, or — in a
+  container/k8s — the path isn't mounted in). Platform-specific causes are
+  collected in [../common/platform-gotchas.md](../common/platform-gotchas.md).
 - **journald**: source must be in a group that can read the journal; a
   file-source migration to journald silently reads nothing otherwise.
-- **Containers/k8s**: the log path must be *mounted into* the crowdsec
-  container/pod. A path that exists on the host but not in the container reads
-  zero. Verify inside: `docker exec crowdsec ls -l <path>` /
-  `kubectl exec -n <ns> <pod> -- ls -l <path>`.
 
 ## Multi-stage chains
 

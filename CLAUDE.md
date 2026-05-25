@@ -3,6 +3,17 @@
 Conventions for authoring this skill. This governs how skill content is **written** and
 **validated**.
 
+# General rules
+
+Never open responses with filler phrases like "Great question!", "Of course!", "Certainly!", or similar warmups. Start every response with the actual answer. No preamble, no acknowledgment of the question.
+
+Match response length to task complexity. Simple questions get direct, short answers. Complex tasks get full, detailed responses. Never pad responses with restatements of the question or closing sentences that repeat what you just said.
+
+Before any significant task, show me 2-3 ways you could approach this work. Wait for me to choose before proceeding.
+
+If you are uncertain about any fact, statistic, date, or piece of technical information: say so explicitly before including it. Never fill gaps in your knowledge with plausible-sounding information. When in doubt, say so.
+
+
 ## Writing style
 
 - **Be concise.** Technical documentation, not an essay. Favor tables, command recipes, and short
@@ -19,6 +30,36 @@ Conventions for authoring this skill. This governs how skill content is **writte
   matching the existing convention. If some command or recipe is irrelevant to some variant it should be noted.
 - **Anchor to canonical docs.** Each reference doc cites the upstream CrowdSec docs URL it derives
   from. Claims trace to canonical documentation, not to memory.
+
+## Content structure
+
+`SKILL.md` is the router — a symptom/intent-indexed table that points into `references/`.
+All depth lives in `references/<area>/`, organized by the axis that fits the area:
+
+| Dir | Organized by | Notes |
+|---|---|---|
+| `install/` | **platform** (one file each) | `bare-metal.md` (apt/dnf + systemd), `docker.md`, `kubernetes.md`, `console.md` (enrollment) — install mechanics genuinely diverge per platform. |
+| `configure/` | **config domain** | `acquisition`, `hub`, `profiles`, `notifications`, `allowlists`; platforms merged inline. `configure/bouncers/` nests one level by **service type** (`firewall`, `web-servers`). |
+| `operate/` | **task** | `health-check`, `upgrades`, `multi-server`. |
+| `appsec/` | **lifecycle** | `overview` → `deploy` → `configure` → `troubleshoot` (the WAF/AppSec feature silo). |
+| `debug/` | **kind** | `common/` (`triage`, `errors`, `platform-gotchas`) + `symptoms/` (`parsing`, `no-alerts`, `not-blocked`). Feature troubleshooting is *routed to* the feature's own dir (e.g. AppSec → `appsec/troubleshoot.md`), not duplicated under debug/. |
+| `migrate/` | **source product** | `from-fail2ban`. |
+| `scripts/` | — | helper scripts (`diagnose.sh`, `check-verification.py`); stdlib/bash only, runnable in static checks. |
+
+**Split files vs inline the prefix.** When deciding whether a platform variant gets its own file:
+
+- **Split into separate files** only when the *content itself* diverges — package managers, file
+  paths, install/upgrade mechanics. `install/` is the canonical case.
+- **Keep one file with inline command-prefix notes** when the task is identical and only the
+  invocation differs (`sudo cscli …` → `docker exec <name> …` → `kubectl exec -n <ns> <pod> -- …`).
+  This is the default across `configure/`, `operate/`, `appsec/`, and `debug/`.
+- **Genuinely platform-specific *failure modes*** (not just prefixes — e.g. container mounts,
+  SELinux/AppArmor, k8s RBAC) collect in one place (`debug/common/platform-gotchas.md`) rather than
+  fragmenting a single symptom across per-platform files.
+
+**Keep this current.** When you add, move, or remove a `references/` directory — or change an
+area's organizing axis — update the table above in the *same* change. This section is the
+authoritative map of the layout; let it drift and it stops being trustworthy.
 
 ## Testing
 

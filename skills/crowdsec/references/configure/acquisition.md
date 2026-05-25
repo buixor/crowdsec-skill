@@ -14,7 +14,7 @@ Acquisition tells the engine **what logs to read and how to label them**. Each s
 declares a `source:` (the datasource type) and a `labels.type:` (the parser hint). If the
 engine reads lines but they show up as **`Lines unparsed`**, acquisition is usually fine
 and the problem is the `type:` or the parser — debug that with
-[../debug/parsing.md](../debug/parsing.md). If a source shows **0 `Lines read`**, the
+[../debug/symptoms/parsing.md](../debug/symptoms/parsing.md). If a source shows **0 `Lines read`**, the
 problem is here.
 
 ## Where acquisition lives

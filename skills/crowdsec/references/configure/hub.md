@@ -101,7 +101,7 @@ editing them taints the item and your change is lost on the next `--force` upgra
 Instead, drop an override file in the sibling `_custom/` directory for that type
 (`scenarios/.../_custom/`, `parsers/.../_custom/`, etc.). Overrides are merged on top of the
 hub item by `name`, survive upgrades, and keep the hub item pristine. See
-[../debug/triage.md](../debug/triage.md) § Hard don'ts and the SKILL.md Hard don'ts list.
+[../debug/common/triage.md](../debug/common/triage.md) § Hard don'ts and the SKILL.md Hard don'ts list.
 
 To remove a collection and its pulled items:
 

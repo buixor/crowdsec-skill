@@ -75,11 +75,13 @@ Docker/k8s commands run inside the container/pod and do not need this.
 | "upgrade", "back up", "roll back", "new version", "tainted items after upgrade" | [references/operate/upgrades.md](./references/operate/upgrades.md) |
 | "multiple agents", "remote LAPI", "mTLS", "postgres backend" | [references/operate/multi-server.md](./references/operate/multi-server.md) *(TODO — stub)* |
 | "is it working?", "smoke test", "validate install", "verify setup", "did detection / WAF / blocking actually wire up?" | [references/operate/health-check.md](./references/operate/health-check.md) |
-| "it's broken" / "not working" / general diagnosis | [references/debug/triage.md](./references/debug/triage.md) → run `bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh` |
-| "logs not parsed", "0 parsed" | [references/debug/parsing.md](./references/debug/parsing.md) |
-| "no alerts firing" | [references/debug/no-alerts.md](./references/debug/no-alerts.md) |
-| "decision exists but not blocked" | [references/debug/bouncer-not-blocking.md](./references/debug/bouncer-not-blocking.md) |
-| Specific error message | [references/debug/common-errors.md](./references/debug/common-errors.md) |
+| **Debug — common** · "it's broken" / "not working" / general diagnosis | [references/debug/common/triage.md](./references/debug/common/triage.md) → run `bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh` |
+| **Debug — common** · specific error string | [references/debug/common/errors.md](./references/debug/common/errors.md) |
+| **Debug — common** · "container can't see logs", "mount", "SELinux/AppArmor denied", "k8s RBAC / DaemonSet" | [references/debug/common/platform-gotchas.md](./references/debug/common/platform-gotchas.md) |
+| **Debug — by symptom** · "logs not parsed", "0 parsed" | [references/debug/symptoms/parsing.md](./references/debug/symptoms/parsing.md) |
+| **Debug — by symptom** · "no alerts firing" | [references/debug/symptoms/no-alerts.md](./references/debug/symptoms/no-alerts.md) |
+| **Debug — by symptom** · "decision exists but not blocked" | [references/debug/symptoms/not-blocked.md](./references/debug/symptoms/not-blocked.md) |
+| **Debug — by feature** · AppSec/WAF not blocking, false positives, captcha | [references/appsec/troubleshoot.md](./references/appsec/troubleshoot.md) |
 | "switch from fail2ban" | [references/migrate/from-fail2ban.md](./references/migrate/from-fail2ban.md) *(TODO — stub)* |
 
 For anything debug-shaped, the first move is almost always:
@@ -134,7 +136,7 @@ Where things live on a default bare-metal install:
 Confirm with the user before any of these:
 
 - `cscli decisions delete --all` — wipes every active ban including CAPI-pulled blocklists. Use targeted `delete -i`, `delete -r`, `delete --id`, `delete --origin lists --scenario <name>`.
-- Editing hub-managed files under `/etc/crowdsec/{parsers,scenarios,collections,postoverflows,contexts}/` instead of the sibling `_custom/` directory — see [references/debug/triage.md](./references/debug/triage.md) § Hard don'ts.
+- Editing hub-managed files under `/etc/crowdsec/{parsers,scenarios,collections,postoverflows,contexts}/` instead of the sibling `_custom/` directory — see [references/debug/common/triage.md](./references/debug/common/triage.md) § Hard don'ts.
 - Disabling a signature collection wholesale to silence a false positive — pick the right suppression layer (allowlist / whitelist parser / postoverflow) per [references/configure/allowlists.md](./references/configure/allowlists.md) § Suppression mechanisms.
 - Mutating host firewall state (firewall bouncer install, `ipset` flush, iptables↔nftables switch) without confirming — the firewall bouncer can wipe rule chains other tools depend on.
 - Skipping `--reset-then-reuse-values` on `helm upgrade crowdsec` — silently drops values.
