@@ -73,7 +73,7 @@ Once installed, Claude picks the skill up whenever your prompt involves CrowdSec
 - _"There's a decision for this IP but it's not being blocked."_
 - _"Migrate my fail2ban jails to CrowdSec."_
 
-## 🚫 What it does **not** do
+## What it does **not** do
 
 This is an **operational** skill. It deploys, configures, and debugs CrowdSec —
 it does **not author** detection content. Writing a parser, scenario, or WAF
@@ -84,9 +84,8 @@ For authoring, head to the [CrowdSec Hub](https://hub.crowdsec.net) and the
 
 ## 🤝 Contributing
 
-Issues and PRs welcome. Improvements to the reference docs, new environment
-coverage, and sharper debug playbooks are especially appreciated. Run
-`claude plugin validate .` before opening a PR.
+Issues and PRs welcome. Improvements to the reference docs and new environment
+coverage are appreciated. If you see anything missing or wrong, don't hesitate to open a PR.
 
 ## 🔗 Links
 
