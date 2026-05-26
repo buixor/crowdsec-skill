@@ -54,11 +54,9 @@ Docker/k8s commands run inside the container/pod and do not need this.
 
 ## Step 1.5 — Version & install-source sanity check (Linux)
 
-Do this **first** on any install task and on any "weird behavior" report — missing
-`cscli` commands/flags, hub items that won't install, behavior that doesn't match the
-docs. A common, misleading failure is an engine that's **years behind** because it was
-installed from the wrong source, not a config bug. This trap is **Linux-distro only**
-(Docker/k8s pull a tag from Docker Hub — see the note at the end).
+Do this **first** on any install task and on any "weird behavior" report (missing
+`cscli` commands/flags, hub items that won't install, behavior ≠ docs). An engine
+installed from the wrong source can be **years behind** — a Linux-distro-only trap.
 
 Compare the running engine to the latest published release:
 
@@ -138,7 +136,7 @@ These work in every environment. On bare-metal/systemd, prefix with `sudo` (unle
 
 | Purpose | Command |
 |---|---|
-| Engine version (compare to latest: `curl -s https://version.crowdsec.net/latest`) | `cscli version` |
+| Engine version | `cscli version` |
 | Effective config (paths, LAPI URL, DB type) | `cscli config show` |
 | One-shot triage table | `cscli metrics` |
 | Recent alerts | `cscli alerts list -l 50` |
