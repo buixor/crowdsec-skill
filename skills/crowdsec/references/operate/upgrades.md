@@ -1,9 +1,9 @@
 ---
 verified:
-  - date: 2026-05-22
+  - date: 2026-05-26
     version: "1.7.8"
     env: systemd
-    notes: "apt-cache policy (no-op at latest, packagecloud repo, rollback table), hub upgrade, backup paths; non-destructive"
+    notes: "apt-cache policy (no-op at latest, packagecloud repo, rollback table), hub upgrade, backup paths; outdated/distro-source detection (official origin packagecloud.io/crowdsec/crowdsec + crowdsec_crowdsec.list confirmed; Ubuntu 26.04 universe trap = 1.4.6; version.crowdsec.net/latest tag_name); fix recipe not run end-to-end"
 ---
 
 # Operate — Upgrades, backup, rollback
@@ -36,6 +36,55 @@ sudo cscli lapi status             # LAPI still reachable
 
 The DB migrating forward is automatic and transparent: an engine upgraded across a minor
 version (e.g. v1.6 → v1.7) on the same data volume keeps all existing decisions and machines.
+
+## Detect & fix an outdated / distro-packaged install (Linux)
+
+A common time-sink: the engine is **years behind** because it was installed from the wrong
+source, not because an upgrade was skipped. `apt upgrade crowdsec` then does nothing useful —
+it only moves within whatever repo the package came from. This is a **Linux-distro-only** trap;
+Docker/Kubernetes pull a tag from Docker Hub and have no equivalent. Two origins cause it:
+
+- **The distro's own `crowdsec` package** — `apt install crowdsec` *without* first adding the
+  official repo pulls an ancient build from Debian/Ubuntu `universe` (e.g. Ubuntu 26.04 universe
+  ships `1.4.6` against a current `1.7.8`).
+- **Outdated docs** pointing at a raw packagecloud `script.deb.sh` URL instead of the maintained
+  `https://install.crowdsec.net` entrypoint.
+
+Symptoms that should trigger this check: missing `cscli` commands/flags, hub items that won't
+install, or behavior that doesn't match the current docs.
+
+**1 — Confirm how far behind you are.** Compare the running engine to the latest published
+release:
+
+```bash
+curl -s https://version.crowdsec.net/latest    # → {"name":"v1.7.8","tag_name":"v1.7.8",...}
+sudo cscli version                             # the engine you actually run
+```
+
+**2 — Identify the install source.**
+
+| Distro | Command | Official source | Trap |
+|---|---|---|---|
+| Debian/Ubuntu | `apt-cache policy crowdsec` (read the `***` installed line) and `ls /etc/apt/sources.list.d/ \| grep -i crowdsec` | origin `packagecloud.io/crowdsec/crowdsec`, repo file present | origin `archive.ubuntu.com` / `deb.debian.org` / `ports.ubuntu.com`, or **no** crowdsec repo file |
+| RHEL-family | `dnf info crowdsec` (the "From repo" / "Repo" field) and `dnf repolist \| grep -i crowdsec` | repo id `crowdsec_crowdsec` | any other repo, or the distro's |
+
+If the source isn't the official repo, **stop debugging config** — the version is the problem.
+
+**3 — Migrate onto the official repo.** Back up first (config + DB survive a reinstall only if
+you don't `purge` them — see [Backup](#backup--only-when-it-actually-matters) below), then add
+the official repo and reinstall:
+
+```bash
+sudo cp -a /etc/crowdsec /etc/crowdsec.bak
+sudo cp -a /var/lib/crowdsec/data /var/lib/crowdsec/data.bak
+sudo apt remove crowdsec                              # remove, not purge — keeps /etc/crowdsec
+curl -s https://install.crowdsec.net | sudo sh        # adds the signed official repo
+sudo apt install crowdsec                             # or: sudo dnf install crowdsec
+sudo systemctl restart crowdsec
+sudo cscli version                                    # now matches version.crowdsec.net/latest
+```
+
+Repo and post-install details are in [../install/bare-metal.md](../install/bare-metal.md) §1.
 
 ## Bouncers upgrade on their own cadence
 
