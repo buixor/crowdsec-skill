@@ -6,7 +6,7 @@
 
 **Install, configure, operate, and debug [CrowdSec](https://doc.crowdsec.net) — straight from your terminal, with Claude doing the heavy lifting.**
 
-[![Version](https://img.shields.io/badge/version-0.2.1-blue)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.2.2-blue)](.claude-plugin/plugin.json)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Claude Code skill](https://img.shields.io/badge/Claude%20Code-skill-8A2BE2)](https://docs.claude.com/en/docs/claude-code/skills)
 [![CrowdSec](https://img.shields.io/badge/CrowdSec-docs-orange)](https://docs.crowdsec.net)
