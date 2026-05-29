@@ -1,7 +1,9 @@
 {
   "name": "crowdsec",
-  "version": "0.2.2",
-  "skills": ["./skills/crowdsec"],
+  "version": "0.2.3",
+  "skills": [
+    "./skills/crowdsec"
+  ],
   "description": "Operational skill for installing, configuring, operating, and debugging CrowdSec (cscli, LAPI/CAPI, hub, bouncers, WAF/AppSec) across bare-metal, Docker, and Kubernetes.",
   "author": {
     "name": "CrowdSec",
